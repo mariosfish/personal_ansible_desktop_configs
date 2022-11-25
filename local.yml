@@ -1,19 +1,15 @@
 # tasks to complete before running roles
 - hosts: all
+  name: "Pre-tasks"
   tags: always
   become: true
   pre_tasks:
-    - name: pre-run | update package cache (arch)
+    - name: Update package cache (debian, etc)
       tags: always
-      pacman: update_cache=yes
-      changed_when: False
-      when: ansible_distribution == "Archlinux"
-
-    - name: pre-run | update package cache (debian, etc)
-      tags: always
-      apt: update_cache=yes
-      changed_when: False
-      when: ansible_distribution in ["Debian", "Ubuntu"]
+      ansible.builtin.apt:
+        update_cache: true
+      changed_when: false
+      when: ansible_distribution in ["Debian", "Ubuntu", "Pop!_OS"]
 
 # run roles
 - hosts: all
@@ -38,29 +34,29 @@
 - hosts: all
   become: true
   tasks:
-  - name: cleanup package cache (debian and ubuntu)
-    tags: always
-    apt:
-      autoclean: yes
-    changed_when: false
-    when: ansible_distribution in ["Debian", "Pop!_OS", "Ubuntu"]
+    - name: cleanup package cache (debian and ubuntu)
+      tags: always
+      apt:
+        autoclean: yes
+      changed_when: false
+      when: ansible_distribution in ["Debian", "Pop!_OS", "Ubuntu"]
 
-  - name: autoremove orphan packages (debian and ubuntu)
-    tags: always
-    apt:
-      autoremove: yes
-      purge: yes
-    when: ansible_distribution in ["Debian", "Pop!_OS", "Ubuntu"]
+    - name: autoremove orphan packages (debian and ubuntu)
+      tags: always
+      apt:
+        autoremove: yes
+        purge: yes
+      when: ansible_distribution in ["Debian", "Pop!_OS", "Ubuntu"]
 
-  - name: send completion alert
-    include_tasks: playbooks/send_completion_alert.yml
-    tags: always
-    when:
-      - task_failed is not defined
+    - name: send completion alert
+      include_tasks: playbooks/send_completion_alert.yml
+      tags: always
+      when:
+        - task_failed is not defined
 
-  - name: send failure alert
-    include_tasks: playbooks/send_failure_alert.yml
-    tags: always
-    when:
-      - task_failed is defined
-      - task_failed == true
+    - name: send failure alert
+      include_tasks: playbooks/send_failure_alert.yml
+      tags: always
+      when:
+        - task_failed is defined
+        - task_failed == true
