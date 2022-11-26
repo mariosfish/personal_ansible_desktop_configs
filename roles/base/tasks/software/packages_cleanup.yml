@@ -9,4 +9,5 @@
       - exim4-config
       - vim
       - emacs
+      - cmatrix
   when: ansible_distribution in ["Debian", "Pop!_OS", "Ubuntu"]
